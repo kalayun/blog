@@ -1,0 +1,82 @@
+<?php 
+/*
+	template name: 首页模板三
+	description: template for mobantu.com modown theme 
+*/
+get_header();$style = _MBT('list_style');$cat_class = 'grids'; if($style == 'list') $cat_class = 'lists';?>
+<?php 
+if(_MBT('banner') == '1'){
+    get_template_part("module/banner");
+}elseif(_MBT('banner') == '2'){ 
+    get_template_part("module/slider");
+}elseif(_MBT('banner') == '3'){ 
+    get_template_part("module/banner");
+    get_template_part("module/slider");
+}?>
+<?php if(_MBT('ad_banner_footer_s')) {echo '<div class="banner-bottom"><div class="container">';MBThemes_ad('ad_banner_footer');echo '</div></div>';}?>
+<?php get_template_part("module/home-widgets");?>
+<div class="main">
+    <?php do_action("modown_main");?>
+	<div class="container clearfix">
+        <?php if($style == 'list') echo '<div class="content-wrap"><div class="content">';?>
+		<div class="cat-nav-wrap">
+			<ul class="cat-nav">
+				<li<?php if(!isset($_GET['o'])) echo ' class="current-menu-item"';?>><a href="<?php echo home_url();?>">最新发布</a></li>
+				<li<?php if(isset($_GET['o']) && $_GET['o'] == 'recommend') echo ' class="current-menu-item"';?>><a href="<?php echo home_url();?>/?o=recommend">站长推荐</a></li>
+			</ul>
+		</div>
+		<div id="posts" class="posts <?php echo $cat_class;?> <?php if(_MBT('waterfall')) echo 'waterfall';?> clearfix">
+			<?php 
+			  	if(is_front_page()){
+                    $paged = (get_query_var('page')) ? get_query_var('page') : 1;
+                }else{
+                    $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+                }
+
+			  	$args = array(
+                    'post_type' => 'post',
+				    //'ignore_sticky_posts' => 1,
+				    'paged' => $paged
+				);
+	
+                $args['meta_query'] = array();
+
+                if(isset($_GET['o']) && $_GET['o']){
+                    if($_GET['o'] == 'comment'){
+                        $args['orderby'] = 'comment_count';
+                    }elseif($_GET['o'] == 'update'){
+                        $args['orderby'] = 'modified';
+                    }elseif($_GET['o'] == 'recommend'){
+                        array_push($args['meta_query'], array('key' => 'down_recommend', 'value' => '1'));
+                    }else{
+                        if($_GET['o'] == 'download'){
+                            $args['meta_key'] = 'down_times';
+                        }
+                        elseif($_GET['o'] == 'view'){
+                            $args['meta_key'] = 'views';
+                        }
+                        $args['orderby'] = 'meta_value_num';
+                    }
+                }
+                    
+			  	
+				query_posts($args);
+                $ccc = 'content';if($style == 'list') $ccc = 'content-list';
+				while ( have_posts() ) : the_post(); 
+				get_template_part( $ccc, get_post_format() );
+				endwhile; wp_reset_query(); 
+			?>
+		</div>
+		<div class="posts-loading"><img src="<?php bloginfo('template_url')?>/static/img/loader.gif"></div>
+		<div class="more-all"><a href="<?php echo get_permalink(MBThemes_page("template/all.php"));?>" target="_blank">查看更多</a></div>
+		<?php //MBThemes_paging();?>
+
+        <?php if($style == 'list') {echo '</div></div>';get_sidebar();}?>
+	</div>
+	<div class="contents">
+		<?php while (have_posts()) : the_post(); ?>
+		<?php the_content(); ?>
+		<?php endwhile;  ?>
+	</div>
+</div>
+<?php get_footer();?>
