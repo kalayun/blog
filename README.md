@@ -1,2 +1,2 @@
 # blog
-blog.clkl.to
+blog.clkl.top
