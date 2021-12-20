@@ -1,5 +1,5 @@
 jQuery(function($){
-	var ajax_url = _MBT.uri+"/action/user.php";
+	var ajax_url = _MBT.uru+"/action/user.php";
 
 	$(".prices label:last-child").addClass('active');
 
@@ -22,7 +22,7 @@ jQuery(function($){
 						}
 						return
 					}
-					layer.msg('签到成功！')
+					layer.msg('签到成功！');
 					that.addClass('active').text('已签到');
 				}  
 
@@ -41,7 +41,7 @@ jQuery(function($){
 			time: 1e5
 		}),
 		utils.ajax({
-			url: _MBT.uri+'/action/share.php',
+			url: _MBT.uru+'/action/share.php',
 			data: {
 				action: "cover_aff"
 			},
@@ -80,30 +80,64 @@ jQuery(function($){
 	});
 
 	$("#avatarphoto").change(function(){
-        $("#uploadphoto").ajaxSubmit({
-            dataType:  'json',
-            beforeSend: function() {
-              layer.msg('上传中...', {time: -1});	
-            },
-            uploadProgress: function(event, position, total, percentComplete) {
+    $("#uploadphoto").ajaxSubmit({
+        dataType:  'json',
+        beforeSend: function() {
+          layer.msg('上传中...', {time: -1});	
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
 
-            },
-            success: function(data) {
-	            if (data.error) {
-	            	layer.msg(data.msg);	
-	                return false;     
-	            }else{
-	                layer.msg(data.msg);
-	                location.reload();     
-	            }
-            },
-            error:function(xhr){
-              	layer.msg('上传失败');	
-              	return false;
-            }
-        });				   
-		
-    });
+        },
+        success: function(data) {
+          if (data.error) {
+          	layer.msg(data.msg);	
+              return false;     
+          }else{
+              layer.msg(data.msg);
+              location.reload();     
+          }
+        },
+        error:function(xhr){
+          	layer.msg('上传失败');	
+          	return false;
+        }
+    });				   
+  });
+
+  if($(".user-gridlist.waterfall").length){
+		$(".user-gridlist.waterfall").each(function(){
+			var grids = document.querySelector('.user-gridlist.waterfall');
+			imagesLoaded( grids, function() {
+		    var msnry = new Masonry( grids, {
+		      itemSelector: '.item',
+		      visibleStyle: { transform: 'translateY(0)', opacity: 1 },
+				  hiddenStyle: { transform: 'translateY(100px)', opacity: 0 },
+		    });
+		    if(MOBANTU.ias == 1){
+					$.ias({
+						triggerPageThreshold : 3,
+						history              : false,
+						container            : '.user-gridlist',
+						item                 : '.item',
+						pagination           : '.pagination',
+						next                 : '.next-page a',
+						loader               : '<img src="'+_MBT.uri+'/static/img/loader.gif">',
+						trigger              : '加载更多',
+						onLoadItems          : function(items){
+							
+						},
+						onRenderComplete     : function(items) {
+							imagesLoaded( grids, function() {
+							  msnry.appended( items );
+							  $('.item').css({ opacity: 1 });
+							});
+							
+						}
+				  });
+			  }
+			});
+		});
+	}
 
 	$('.container-user').on('click', function(e){
 
@@ -445,7 +479,7 @@ jQuery(function($){
 	 									iframe = 1;
 	 									layer.open({
 										  	type: 2,
-										  	title: '支付',
+										  	title: '扫码支付',
 										  	shadeClose: false,
 										  	shade: 0.8,
 										  	area: ['350px', '470px'],
@@ -627,8 +661,12 @@ jQuery(function($){
 			 							if(data.error == 3){
 											layer.open({
 											  type: 1,
-											  skin: 'layui-layer-dialog',
-											  title: '选择支付方式',
+											  area: ['350px', ''],
+								  			skin: 'layui-layer-dialog',
+								  			title: '选择支付方式',
+								  			resize:false,
+						          	scrollbar: false,
+						          	shadeClose: true,
 											  content: data.payment
 											});
 											jQuery('body').on("click",".erphpdown-type-link",function(){
@@ -640,7 +678,7 @@ jQuery(function($){
 												  	/*layer.close(index);*/
 												  	layer.msg('升级中...');
 												  	jQuery.post(
-													_MBT.uri+'/action/user.php',
+													_MBT.uru+'/action/user.php',
 													{
 														num: text,
 														action: "user.vip.card"
@@ -660,7 +698,7 @@ jQuery(function($){
 											jQuery('body').on("click",".erphpdown-type-credit",function(){
 												var msgTips = layer.msg('升级中...');
 												jQuery.post(
-												_MBT.uri+'/action/user.php',
+												_MBT.uru+'/action/user.php',
 												{
 													userType: jQuery(this).data("type"),
 													action: "user.vip.credit"
@@ -723,25 +761,56 @@ jQuery(function($){
 						            if(result.status == "1"){
 						                $(".erphp-weixin-scan-pro .ews-qrcode").attr("src", result.img).removeClass("blur");
 						                if(result.scene_id){
-						                    erphpWeixinScan = setInterval(function() {
-						                        $.post(ews_ajax_url, {
-						                            "action": "ews_login_pro_scan",
-						                            "scene_id": result.scene_id
-						                        }, function(data) {
-						                            if(data.status == "1"){
-						                                clearInterval(erphpWeixinScan);
-						                                if(typeof(layer) != "undefined"){
-						                                    layer.msg("操作成功");
-						                                }
-						                                location.reload();
-						                            }else if(data.status == "2"){
-						                                clearInterval(erphpWeixinScan);
-						                                if(typeof(layer) != "undefined"){
-						                                    layer.msg("绑定失败！此微信已绑定过其他账号了～");
-						                                }
-						                            }
-						                        });
-						                    }, 3000);
+						                	var erphpWeixinScanTimer;
+					                    erphpWeixinScan = setInterval(function() {
+					                        $.post(ews_ajax_url, {
+					                            "action": "ews_login_pro_scan",
+					                            "scene_id": result.scene_id
+					                        }, function(data) {
+					                            if(data.status == "1"){
+					                                clearInterval(erphpWeixinScan);
+					                                clearInterval(erphpWeixinScanTimer);
+					                                if(typeof(layer) != "undefined"){
+					                                    layer.msg("操作成功");
+					                                }
+					                                location.reload();
+					                            }else if(data.status == "2"){
+					                                clearInterval(erphpWeixinScan);
+					                                clearInterval(erphpWeixinScanTimer);
+					                                if(typeof(layer) != "undefined"){
+					                                    layer.msg("绑定失败！此微信已绑定过其他账号了～");
+					                                }
+					                            }
+					                        });
+					                    }, 5000);
+
+					                    if(!$("#qrscantime").length){
+					                    	$(".erphp-weixin-scan-pro .ews-tips").append(" <span id='qrscantime'></span>");
+					                    }
+
+					                    var m = 0, s = 60;  
+											        var Timer = document.getElementById("qrscantime");
+											        erphpWeixinScanCountdown();
+											        erphpWeixinScanTimer = setInterval(function(){ erphpWeixinScanCountdown() },1000);
+											        function erphpWeixinScanCountdown (){
+											            Timer.innerHTML = "倒计时<span>"+s+"秒</span>";
+											            if( m == 0 && s == 0 ){
+											                clearInterval(erphpWeixinScan);
+											                clearInterval(erphpWeixinScanTimer);
+											                $(".ews-qrcode").addClass('blur');
+											                $(".ews-qrcode-wrap").append('<div class="expired"></div>');
+                            					$(".erphp-weixin-scan-pro .ews-tips").html("请刷新页面重新获取二维码");
+											                m = 0;
+											                s = 59;
+											            }else if( m >= 0 ){
+											                if( s > 0 ){
+											                    s--;
+											                }else if( s == 0 ){
+											                    m--;
+											                    s = 59;
+											                }
+											            }
+											        }
 						                }
 						            }else{
 						                if(typeof(layer) != "undefined"){

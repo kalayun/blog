@@ -17,6 +17,7 @@ if(_MBT('banner') == '1'){
 <?php get_template_part("module/home-widgets");?>
 <div class="main">
     <?php do_action("modown_main");?>
+    <?php if(_MBT('home_cats_thumb')) get_template_part("module/home-cathumbs");?>
 	<div class="container clearfix">
         <?php if($style == 'list') echo '<div class="content-wrap"><div class="content">';?>
 		<div class="cat-nav-wrap">

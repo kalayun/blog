@@ -1,3 +1,4 @@
+var erphpWeixinScan, erphpWeixinScanTimer;
 var MOBANTU = {
 	paged: 1,
 	lazy: 0,
@@ -157,6 +158,16 @@ var MOBANTU = {
 			});
 		});
 
+		jQuery(".search-form .search-cat").click(function(){
+			jQuery(".search-form .search-cats").toggleClass("show");
+		});
+
+		jQuery(".search-form .search-cats li").click(function(){
+			jQuery(".search-form .search-cats").removeClass("show");
+			jQuery(".search-form .search-cat").text(jQuery(this).text());
+			jQuery("#search_cat").val(jQuery(this).data("id"));
+		});
+
 		if(bodyWidth <= 768){
 			if(jQuery(".nav-main .mega4").length){
 				jQuery(".nav-main .mega4").removeClass('mega4');
@@ -168,9 +179,8 @@ var MOBANTU = {
 				jQuery(".nav-main .mega2").removeClass('mega2');
 			}
 			jQuery(".menu-item-has-children > a").each(function(){
-				jQuery(this).append('<span class="explose"><i class="icon icon-arrow-down"></i></span>');
+				jQuery(this).append('<span class="explose"><i class="autoicon icon icon-arrow-down"></i></span>');
 				jQuery(this).find('.explose').click(function(){
-					console.log(1);
 					jQuery(this).find(".icon").toggleClass("icon-arrow-up");
 					var sub = jQuery(this).parent().next();
 					if(sub.hasClass("show")){
@@ -234,69 +244,164 @@ var MOBANTU = {
 		if(jQuery(".ckplayer-video-real").length){
 			jQuery(".ckplayer-video-real").bind('contextmenu',function() { return false; });
 			jQuery(".ckplayer-video-real").each(function(){
-				var conv = jQuery(this).data("video")
+				var conv = jQuery(this).data("key")
 					conn = jQuery(this).data("nonce");
-		        new ckplayer({
-		            container:"#ckplayer-video-"+conn,
-		            variable:"player",
-		            autoplay:false,
-		            video:conv
-		        });
+				if(jQuery(this).hasClass("video-blob")){
+					jQuery(".article-video").append("<div class='article-video-loading' style='z-index: 9;position: absolute;top: calc(50% - 12px);left: 0;right: 0;color: #fff;font-size: 16px;text-align: center;'>视频加载中...</div>");
+				    window.URL = window.URL || window.webkitURL; 
+				    var xhr = new XMLHttpRequest(); 
+				    xhr.timeout = 1000*60*1;
+				    xhr.open("GET", Base64.decode(conv), true);
+				    xhr.responseType = "blob"; 
+				    xhr.onload = function (e) {
+				        if (this.status == 200) { 
+				            var blob = this.response;
+				            jQuery(".article-video-loading").remove();
+				            new ckplayer({
+					            container:"#ckplayer-video-"+conn,
+					            variable:"player",
+					            autoplay:false,
+					            html5m3u8:true,
+					            //flashplayer:true,
+					            video:window.URL.createObjectURL(blob)
+					        });
+				        }
+				    }
+				    xhr.send();
+				}else{
+			        new ckplayer({
+			            container:"#ckplayer-video-"+conn,
+			            variable:"player",
+			            autoplay:false,
+			            html5m3u8:true,
+			            //flashplayer:true,
+			            video:Base64.decode(conv)
+			        });
+			    }
 			});
 		}
 
 		if(jQuery(".fplayer-video-real").length){
 			jQuery(".fplayer-video-real").bind('contextmenu',function() { return false; });
 			jQuery(".fplayer-video-real").each(function(){
-				var conv = jQuery(this).data("video")
+				var conv = jQuery(this).data("key")
 					conn = jQuery(this).data("nonce");
 
-				jQuery("#fplayer-video-"+conn).append('<video id="#fplayer-video-'+conn+'-v" src="'+conv+'"></video>');
+				if(jQuery(this).hasClass("video-blob")){
+					jQuery(".article-video").append("<div class='article-video-loading' style='z-index: 9;position: absolute;top: calc(50% - 12px);left: 0;right: 0;color: #fff;font-size: 16px;text-align: center;'>视频加载中...</div>");
+				    window.URL = window.URL || window.webkitURL; 
+				    var xhr = new XMLHttpRequest(); 
+				    xhr.open("GET", Base64.decode(conv), true);
+				    xhr.responseType = "blob"; 
+				    xhr.timeout = 1000*60*1;
+				    xhr.onload = function (e) {
+				        if (this.status == 200) { 
+				            var blob = this.response;
+				            jQuery(".article-video-loading").remove();
+				            jQuery("#fplayer-video-"+conn).append('<video id="fplayer-video-'+conn+'-v" crossorigin="anonymous" src="'+window.URL.createObjectURL(blob)+'"></video>');
+					        var myFP = fluidPlayer(
+							    "fplayer-video-"+conn+"-v",{
+								"layoutControls": {
+									"controlBar": {
+										"autoHideTimeout": 3,
+										"animated": true,
+										"autoHide": true
+									},
+									"htmlOnPauseBlock": {
+										"html": null,
+										"height": null,
+										"width": null
+									},
+									"autoPlay": false,
+									"mute": false,
+									"allowTheatre": false,
+									"playPauseAnimation": true,
+									"playbackRateEnabled": true,
+									"allowDownload": false,
+									"playButtonShowing": true,
+									"fillToContainer": true,
+									"primaryColor": "#00a0e9",
+									"posterImage": ""
+								}
+							});
+				        }
+				    }
+				    xhr.send();
+				}else{
+					jQuery("#fplayer-video-"+conn).append('<video id="fplayer-video-'+conn+'-v" crossorigin="anonymous" src="'+Base64.decode(conv)+'"></video>');
 
-		        var myFP = fluidPlayer(
-				    "#fplayer-video-"+conn+"-v",{
-					"layoutControls": {
-						"controlBar": {
-							"autoHideTimeout": 3,
-							"animated": true,
-							"autoHide": true
-						},
-						"htmlOnPauseBlock": {
-							"html": null,
-							"height": null,
-							"width": null
-						},
-						"autoPlay": false,
-						"mute": false,
-						"allowTheatre": false,
-						"playPauseAnimation": true,
-						"playbackRateEnabled": true,
-						"allowDownload": false,
-						"playButtonShowing": true,
-						"fillToContainer": true,
-						"primaryColor": "#00a0e9",
-						"posterImage": ""
-					}
-				});
+			        var myFP = fluidPlayer(
+					    "fplayer-video-"+conn+"-v",{
+						"layoutControls": {
+							"controlBar": {
+								"autoHideTimeout": 3,
+								"animated": true,
+								"autoHide": true
+							},
+							"htmlOnPauseBlock": {
+								"html": null,
+								"height": null,
+								"width": null
+							},
+							"autoPlay": false,
+							"mute": false,
+							"allowTheatre": false,
+							"playPauseAnimation": true,
+							"playbackRateEnabled": true,
+							"allowDownload": false,
+							"playButtonShowing": true,
+							"fillToContainer": true,
+							"primaryColor": "#00a0e9",
+							"posterImage": ""
+						}
+					});
+			    }
 			});
 		}
 
 		if(jQuery(".dplayer-video-real").length){
 			jQuery(".dplayer-video-real").bind('contextmenu',function() { return false; });
 			jQuery(".dplayer-video-real").each(function(){
-				var conv = jQuery(this).data("video")
+				var conv = jQuery(this).data("key")
 					conn = jQuery(this).data("nonce");
-		        new DPlayer({
-				    container: document.getElementById("dplayer-video-"+conn),
-				    screenshot: true,
-				    autoplay: false,
-				    video: {
-				        url: conv,
-				        pic: '',
-				        thumbnails: '',
-				        type: 'auto'
+				if(jQuery(this).hasClass("video-blob")){
+					jQuery(".article-video").append("<div class='article-video-loading' style='z-index: 9;position: absolute;top: calc(50% - 12px);left: 0;right: 0;color: #fff;font-size: 16px;text-align: center;'>视频加载中...</div>");
+				    window.URL = window.URL || window.webkitURL; 
+				    var xhr = new XMLHttpRequest(); 
+				    xhr.open("GET", Base64.decode(conv), true);
+				    xhr.responseType = "blob"; 
+				    xhr.timeout = 1000*60*1;
+				    xhr.onload = function (e) {
+				        if (this.status == 200) { 
+				            var blob = this.response;
+				            jQuery(".article-video-loading").remove();
+				            new DPlayer({
+							    container: document.getElementById("dplayer-video-"+conn),
+							    screenshot: true,
+							    autoplay: false,
+							    video: {
+							        url: window.URL.createObjectURL(blob),
+							        pic: '',
+							        thumbnails: '',
+							        type: 'auto'
+							    }
+							});
+				        }
 				    }
-				});
+				    xhr.send();
+				}else{
+			        new DPlayer({
+					    container: document.getElementById("dplayer-video-"+conn),
+					    screenshot: true,
+					    autoplay: false,
+					    video: {
+					        url: Base64.decode(conv),
+					        pic: '',
+					        thumbnails: '',
+					        type: 'auto'
+					    }
+					});
+			    }
 			});
 		}
 
@@ -322,105 +427,102 @@ var MOBANTU = {
 
 		jQuery(".btn-vip-action").click(function(){
 			var currbtn = jQuery(this);
-			/*layer.open({
-			  title: '提示',
-			  content: '确认升级VIP？',
-			  yes: function(index, layero){
-			  	layer.close(index);*/
-				if(!currbtn.hasClass("disabled")){	
-					currbtn.addClass("disabled");
-					var msgTips = layer.msg('升级中...');
-					jQuery.post(
-					_MBT.uri+'/action/user.php',
-					{
-						userType: currbtn.data("type"),
-						action: "user.vip"
-					},
-					function (data) {
-						layer.close(msgTips);
-						currbtn.removeClass("disabled");
-						if( data.error ){
-							if( data.msg ){
-								if(data.error == 2){
-									layer.open({
-									  title: '提示',
-									  content: '余额不足，现在去充值？',
-									  yes: function(index, layero){
-									    location.href=data.link;
-									  }
-									});
-								}else if(data.error == 3){
-									layer.open({
-									  type: 1,
-									  skin: 'layui-layer-dialog',
-									  title: '选择支付方式',
-									  content: data.payment
-									});
-									jQuery('body').on("click",".erphpdown-type-link",function(){
-										layer.closeAll();
-									});
-									jQuery('body').on("click",".erphpdown-type-card",function(){
-										layer.closeAll();
-										layer.prompt({title: '输入激活码', formType: 3}, function(text, index){
-										  	/*layer.close(index);*/
-										  	layer.msg('升级中...');
-										  	jQuery.post(
-											_MBT.uri+'/action/user.php',
-											{
-												num: text,
-												action: "user.vip.card"
-											},
-											function (data) {
-												if( data.error ){
-					 								if( data.msg ){
-					 									layer.msg(data.msg)
-					 								}
-					 								return
-					 							}
-												layer.msg('升级成功')
-	 											location.reload();
-											},'json');
-										});
-									});
-									jQuery('body').on("click",".erphpdown-type-credit",function(){
-										layer.msg('升级中...');
-										jQuery.post(
-										_MBT.uri+'/action/user.php',
+			if(!currbtn.hasClass("disabled")){	
+				currbtn.addClass("disabled");
+				var msgTips = layer.msg('升级中...');
+				jQuery.post(
+				_MBT.uru+'/action/user.php',
+				{
+					userType: currbtn.data("type"),
+					action: "user.vip"
+				},
+				function (data) {
+					layer.close(msgTips);
+					currbtn.removeClass("disabled");
+					if( data.error ){
+						if( data.msg ){
+							if(data.error == 2){
+								layer.open({
+								  title: '提示',
+								  content: '余额不足，现在去充值？',
+								  yes: function(index, layero){
+								    location.href=data.link;
+								  }
+								});
+							}else if(data.error == 3){
+								layer.open({
+								  type: 1,
+								  area: ['350px', ''],
+								  skin: 'layui-layer-dialog',
+								  title: '选择支付方式',
+								  resize:false,
+						          scrollbar: false,
+						          shadeClose: true,
+								  content: data.payment
+								});
+								jQuery('body').on("click",".erphpdown-type-link",function(){
+									layer.closeAll();
+								});
+								jQuery('body').on("click",".erphpdown-type-card",function(){
+									layer.closeAll();
+									layer.prompt({title: '输入激活码', formType: 3}, function(text, index){
+									  	/*layer.close(index);*/
+									  	layer.msg('升级中...');
+									  	jQuery.post(
+										_MBT.uru+'/action/user.php',
 										{
-											userType: jQuery(this).data("type"),
-											action: "user.vip.credit"
+											num: text,
+											action: "user.vip.card"
 										},
 										function (data) {
 											if( data.error ){
-												if( data.msg ){
-													if(data.error == 2){
-														layer.open({
-														  title: '提示',
-														  content: '余额不足，现在去充值？',
-														  yes: function(index, layero){
-														    location.href=data.link;
-														  }
-														});
-													}else{
-														layer.msg(data.msg);
-													}
-												}
-												return false;
-											}
-											layer.msg('恭喜您，升级VIP成功～');
+				 								if( data.msg ){
+				 									layer.msg(data.msg)
+				 								}
+				 								return
+				 							}
+											layer.msg('升级成功')
+ 											location.reload();
 										},'json');
 									});
-								}else{
-									layer.msg(data.msg);
-								}
+								});
+								jQuery('body').on("click",".erphpdown-type-credit",function(){
+									layer.msg('升级中...');
+									jQuery.post(
+									_MBT.uru+'/action/user.php',
+									{
+										userType: jQuery(this).data("type"),
+										action: "user.vip.credit"
+									},
+									function (data) {
+										if( data.error ){
+											if( data.msg ){
+												if(data.error == 2){
+													layer.open({
+													  title: '提示',
+													  content: '余额不足，现在去充值？',
+													  yes: function(index, layero){
+													    location.href=data.link;
+													  }
+													});
+												}else{
+													layer.msg(data.msg);
+												}
+											}
+											return false;
+										}
+										layer.msg('恭喜您，升级VIP成功～');
+									},'json');
+								});
+							}else{
+								layer.msg(data.msg);
 							}
-							return false;
 						}
-						layer.msg('恭喜您，升级VIP成功～');
-					},'json');
-				}
-			/*  }
-			});*/
+						return false;
+					}
+					layer.msg('恭喜您，升级VIP成功～');
+				},'json');
+			}
 			return false;
 		});
 
@@ -434,7 +536,7 @@ var MOBANTU = {
 				that.addClass("disabled");
 				jQuery.ajax({  
 					type: 'POST',  
-					url:  _MBT.uri+'/action/user.php',
+					url:  _MBT.uru+'/action/user.php',
 					dataType: 'json',
 					data: {
 						action: 'user.checkin',
@@ -931,6 +1033,7 @@ var MOBANTU = {
 						trigger              : '加载更多',
 						onRenderComplete     : function(items) {
 							that.video();
+							that.audio();
 							if(that.lazy) that.lazyload();
 						}
 				    });
@@ -949,6 +1052,7 @@ var MOBANTU = {
 					trigger              : '加载更多',
 					onRenderComplete     : function(items) {
 						that.video();
+						that.audio();
 						if(that.lazy) that.lazyload();
 					}
 			    });
@@ -982,7 +1086,7 @@ var MOBANTU = {
 		    var url = dom.data('url');
 		    switch(to){
 		        case 'qq':
-		            url = 'http://connect.qq.com/widget/shareqq/index.html?url='+url+'&desc='+share.desc+'&summary='+share.title+'&site=zeshlife&pics='+share.pic;
+		            url = 'http://connect.qq.com/widget/shareqq/index.html?url='+url+'&desc='+share.desc+'&summary='+share.title+'&pics='+share.pic;
 		            break;
 		        case 'weibo':
 		            url = 'http://service.weibo.com/share/share.php?title='+share.title+'&url='+url+'&source=bookmark&pic='+share.pic;
@@ -1020,6 +1124,7 @@ var MOBANTU = {
 		        success: function(data){
 		            con.html(data);
 		            that.video();
+		            that.audio();
 		            if(link){
 		            	con.next().find('a').attr("href",link);
 		            }
@@ -1036,7 +1141,6 @@ var MOBANTU = {
 					}else{
 						if(that.lazy) that.lazyload();
 					}
-		           
 		        }
 		    });
 		    return false;
@@ -1054,6 +1158,7 @@ var MOBANTU = {
 		        success: function(data){
 		            con.html(data);
 		            that.video();
+		            that.audio();
 		            if(the.parent().parent().parent().parent().hasClass('water')){
 			            var id = the.parent().parent().parent().parent().attr('id');
 						var grids = document.querySelector('#'+id+' .waterfall');
@@ -1111,7 +1216,8 @@ var MOBANTU = {
 	                
                     jQuery(".posts-loading").hide();
                     jQuery("#posts").show();
-                    that.video();    
+                    that.video();   
+                    that.audio(); 
 		            
 		        }
 		    });
@@ -1120,7 +1226,6 @@ var MOBANTU = {
 	},
 	login: function(){
 		var that = this;
-		var erphpWeixinScan;
 		jQuery(function($){
 			$("body").on("click", ".erphplogin-weixin-loader", function(){
 				$.post(
@@ -1137,7 +1242,9 @@ var MOBANTU = {
 
 			$("body").on("click", ".erphp-login-must", function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
+				
 				$('#sign-in').show();
 				$('#sign-up').hide();
 				$('#sign-mp').hide();
@@ -1148,12 +1255,13 @@ var MOBANTU = {
 						$(".signinsubmit-loader").click();
 					}
 				}
-
+				
 				return false;
 			});
 
 			$("body").on("click", ".signin-loader", function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
 				if(that.mbf){
 					$('#sign-sms').show();
@@ -1191,6 +1299,7 @@ var MOBANTU = {
 
 			$('.erphp-reg-must').on('click', function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
 				$('#sign-up').show();
 				$('#sign-in').hide();
@@ -1207,6 +1316,7 @@ var MOBANTU = {
 
 			$('.signup-loader').on('click', function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
 				if(that.mbf){
 					$('#sign-sms').show();
@@ -1243,6 +1353,7 @@ var MOBANTU = {
 
 			$('.signsms-loader').on('click', function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
 				$('#sign-sms').show();
 				$('#sign-up').hide();
@@ -1259,6 +1370,7 @@ var MOBANTU = {
 
 			$('.signmp-loader').on('click', function(){
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 				that.body.addClass('sign-show');
 				$('#sign-mp').show();
 				$('#sign-up').hide();
@@ -1273,11 +1385,13 @@ var MOBANTU = {
 			$('.signclose-loader').on('click', function(){
 				that.body.removeClass('sign-show');
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 			});
 
 			$('.sign-mask').on('click', function(){
 				that.body.removeClass('sign-show');
 				clearInterval(erphpWeixinScan);
+				clearInterval(erphpWeixinScanTimer);
 			});
 			
 			$('.signinsubmit-loader').on('click', function(){
@@ -1433,6 +1547,10 @@ var MOBANTU = {
 								logtips('邮箱已存在')
 								captcha.html("获取邮箱验证码");
 								captcha.removeClass("disabled"); 
+							}else if($.trim(data) == "3"){
+								logtips('请使用正确的邮箱')
+								captcha.html("获取邮箱验证码");
+								captcha.removeClass("disabled"); 
 							}else{
 								logtips('验证码发送失败，请稍后重试')
 								captcha.html("获取邮箱验证码");
@@ -1516,13 +1634,42 @@ var MOBANTU = {
 		                        }, function(data) {
 		                            if(data.status == "1"){
 		                                clearInterval(erphpWeixinScan);
+		                                clearInterval(erphpWeixinScanTimer);
 		                                if(typeof(layer) != "undefined"){
 		                                    layer.msg("操作成功");
 		                                }
 		                                location.reload();
 		                            }
 		                        });
-		                    }, 3000);
+		                    }, 5000);
+
+		                    if(!$("#qrscantime").length){
+		                    	$(".erphp-weixin-scan-pro .ews-tips").append(" <span id='qrscantime'></span>");
+		                    }
+
+		                    var m = 0, s = 60;  
+					        var Timer = document.getElementById("qrscantime");
+					        erphpWeixinScanCountdown();
+					        erphpWeixinScanTimer = setInterval(function(){ erphpWeixinScanCountdown() },1000);
+					        function erphpWeixinScanCountdown (){
+					            Timer.innerHTML = "倒计时<span>"+s+"秒</span>";
+					            if( m == 0 && s == 0 ){
+					                clearInterval(erphpWeixinScan);
+					                clearInterval(erphpWeixinScanTimer);
+					                $(".ews-qrcode-wrap").append('<div class="expired"></div>');
+                            		$(".erphp-weixin-scan-pro .ews-tips").html("请刷新页面重新获取二维码");
+                            		location.reload();
+					                m = 0;
+					                s = 59;
+					            }else if( m >= 0 ){
+					                if( s > 0 ){
+					                    s--;
+					                }else if( s == 0 ){
+					                    m--;
+					                    s = 59;
+					                }
+					            }
+					        }
 		                }
 		            }else{
 		                if(typeof(layer) != "undefined"){
@@ -1583,6 +1730,17 @@ var MOBANTU = {
 		    $('#commentform').submit(function() {
 		        $('.comt-loading').slideDown(300);
 		        $submit.attr('disabled', true).fadeTo('slow', 0.5);
+		        if($('#comment').val() == ''){
+		        	$('.comt-loading').hide();
+		        	$submit.attr('disabled', false).fadeTo('slow', 1);
+		        	$('.comt-error').slideDown(300).html('说点什么吧！');
+		            setTimeout(function() {
+                        $submit.attr('disabled', false).fadeTo('slow', 1);
+                        $('.comt-error').slideUp(300)
+                    },
+                    3000);
+		            return false;
+		        }
 		        if (edit) $('#comment').after('<input type="text" name="edit_id" id="edit_id" value="' + edit + '" style="display:none;" />');
 		        $.ajax({
 		            url: _MBT.uri + '/action/comment.php',
@@ -1590,15 +1748,20 @@ var MOBANTU = {
 		            type: $(this).attr('method'),
 		            error: function(request) {
 		                $('.comt-loading').slideUp(300);
-		                $('.comt-error').slideDown(300).html('提交失败，请稍后重试！');
+		                if(request.statusText == 'Method Not Allowed'){
+		                	$('.comt-error').slideDown(300).html(request.responseText);
+		                }else{
+			                $('.comt-error').slideDown(300).html('提交失败，请稍后重试！');
+			            }
 		                setTimeout(function() {
-		                        $submit.attr('disabled', false).fadeTo('slow', 1);
-		                        $('.comt-error').slideUp(300)
-		                    },
-		                    3000)
+	                        $submit.attr('disabled', false).fadeTo('slow', 1);
+	                        $('.comt-error').slideUp(300)
+	                    },
+	                    3000);
 		            },
 		            success: function(data) {
 		                $('.comt-loading').slideUp(300);
+
 		                comm_array.push($('#comment').val());
 		                $('textarea').each(function() {
 		                    this.value = ''
@@ -1730,6 +1893,28 @@ var MOBANTU = {
 
 		if( jQuery('.prettyprint').length ){
 		    prettyPrint();
+		}
+
+		if(that.lazy){
+			jQuery('.article-content img').each(function(){
+				var img_src = jQuery(this).attr('src');
+				if(img_src){
+					if(_MBT.fancybox == '1'){
+						if(!jQuery(this).parent("a").length){
+							jQuery(this).wrap("<a href='"+jQuery(this).attr('src')+"'></a>");
+						}	
+					}
+					jQuery(this).removeAttr("src").attr("data-original",img_src).addClass("loading");
+					jQuery(this).lazyload({
+						data_attribute: 'original',
+				        placeholder: _MBT.uri + '/static/img/imging.gif',
+				        threshold: 400,
+				        load: function(){
+				        	jQuery(this).removeClass("loading").addClass("loaded");
+				        }
+				    });
+				}
+			});
 		}
 
 		jQuery(".article-content iframe, .article-content embed, .article-content object, .article-content video").each(function(){
@@ -1868,8 +2053,6 @@ var MOBANTU = {
 			});
 		});
 
-
-		//文章点赞
 		if(jQuery('.article-zan').length){
 			if(checkZan(jQuery('.article-zan').data('id'))){
 				jQuery('.article-zan').addClass('active').find('.icon').addClass('icon-zan-s');
@@ -1968,7 +2151,7 @@ var MOBANTU = {
 		        if (data.result == '1') {
 		          vote_btn.addClass('active').html('<i class="icon icon-star"></i> <span>'+(nn+1)+'</span>');
 		        }else if (data.result == '2') {
-		        	if(jQuery(".user-commentlist").length){
+		        	if(jQuery(".user-gridlist").length){
 		        		location.reload();
 		        	}else{
 		        		vote_btn.removeClass('active').html('<i class="icon icon-star"></i> <span>'+(nn-1)+'</span>');
@@ -1977,7 +2160,7 @@ var MOBANTU = {
 		      }
 		 	});
 		  }
-		  
+		  return false;
 		});
 
 		jQuery('.side-collect').on('click', function() {
@@ -1993,9 +2176,9 @@ var MOBANTU = {
 		       },
 		      success: function(data) {
 		        if (data.result == '1') {
-		            vote_btn.addClass('active').text('已收藏');
+		            vote_btn.addClass('active').html('<i class="icon icon-star-s"></i> 取消收藏');
 		        }else if (data.result == '2') {
-		        	vote_btn.removeClass('active').text('收藏');
+		        	vote_btn.removeClass('active').html('<i class="icon icon-star"></i> 加入收藏');
 		        }    
 		      }
 		 	});
@@ -2042,6 +2225,158 @@ var MOBANTU = {
 	        }
 	    }
 	}
+}
+
+var Base64 = {
+
+    // private property
+    _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
+    // public method for encoding
+    , encode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+        var i = 0;
+
+        input = Base64._utf8_encode(input);
+
+        while (i < input.length)
+        {
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
+
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
+
+            if (isNaN(chr2))
+            {
+                enc3 = enc4 = 64;
+            }
+            else if (isNaN(chr3))
+            {
+                enc4 = 64;
+            }
+
+            output = output +
+                this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+                this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+        } // Whend 
+
+        return output;
+    } // End Function encode 
+
+
+    // public method for decoding
+    ,decode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3;
+        var enc1, enc2, enc3, enc4;
+        var i = 0;
+
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+        while (i < input.length)
+        {
+            enc1 = this._keyStr.indexOf(input.charAt(i++));
+            enc2 = this._keyStr.indexOf(input.charAt(i++));
+            enc3 = this._keyStr.indexOf(input.charAt(i++));
+            enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+            chr1 = (enc1 << 2) | (enc2 >> 4);
+            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            chr3 = ((enc3 & 3) << 6) | enc4;
+
+            output = output + String.fromCharCode(chr1);
+
+            if (enc3 != 64)
+            {
+                output = output + String.fromCharCode(chr2);
+            }
+
+            if (enc4 != 64)
+            {
+                output = output + String.fromCharCode(chr3);
+            }
+
+        } // Whend 
+
+        output = Base64._utf8_decode(output);
+
+        return output;
+    } // End Function decode 
+
+
+    // private method for UTF-8 encoding
+    ,_utf8_encode: function (string)
+    {
+        var utftext = "";
+        string = string.replace(/\r\n/g, "\n");
+
+        for (var n = 0; n < string.length; n++)
+        {
+            var c = string.charCodeAt(n);
+
+            if (c < 128)
+            {
+                utftext += String.fromCharCode(c);
+            }
+            else if ((c > 127) && (c < 2048))
+            {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else
+            {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+
+        } // Next n 
+
+        return utftext;
+    } // End Function _utf8_encode 
+
+    // private method for UTF-8 decoding
+    ,_utf8_decode: function (utftext)
+    {
+        var string = "";
+        var i = 0;
+        var c, c1, c2, c3;
+        c = c1 = c2 = 0;
+
+        while (i < utftext.length)
+        {
+            c = utftext.charCodeAt(i);
+
+            if (c < 128)
+            {
+                string += String.fromCharCode(c);
+                i++;
+            }
+            else if ((c > 191) && (c < 224))
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                i += 2;
+            }
+            else
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                c3 = utftext.charCodeAt(i + 2);
+                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                i += 3;
+            }
+
+        } // Whend 
+
+        return string;
+    } // End Function _utf8_decode 
+
 }
 
 weixinShareApi = {
@@ -2337,19 +2672,17 @@ utils = {
 
 var _loginTipstimer;
 function logtips(str){
-	if( !str ) return false
-		_loginTipstimer && clearTimeout(_loginTipstimer)
+	if( !str ) return false;
+	_loginTipstimer && clearTimeout(_loginTipstimer);
 	jQuery('.sign-tips').html(str).animate({
-
 		height: 29
-
-	}, 220)
+	}, 220);
 
 	_loginTipstimer = setTimeout(function(){
 		jQuery('.sign-tips').animate({
 			height: 0
 		}, 220)
-	}, 5000)
+	}, 5000);
 }
 
 function is_name(str) {    
@@ -2380,5 +2713,37 @@ function scrollTo(name, add, speed){
                 scrollTop: jQuery(name).offset().top + (add || 0)
             }, speed);
         }
+    }
+}
+
+function grin(tag) {
+    var myField;
+    tag = ' ' + tag + ' ';
+    if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') {
+        myField = document.getElementById('comment');
+    } else {
+        return false;
+    }
+    if (document.selection) {
+        myField.focus();
+        sel = document.selection.createRange();
+        sel.text = tag;
+        myField.focus();
+    }
+    else if (myField.selectionStart || myField.selectionStart == '0') {
+        var startPos = myField.selectionStart;
+        var endPos = myField.selectionEnd;
+        var cursorPos = endPos;
+        myField.value = myField.value.substring(0, startPos)
+                      + tag
+                      + myField.value.substring(endPos, myField.value.length);
+        cursorPos += tag.length;
+        myField.focus();
+        myField.selectionStart = cursorPos;
+        myField.selectionEnd = cursorPos;
+    }
+    else {
+        myField.value += tag;
+        myField.focus();
     }
 }

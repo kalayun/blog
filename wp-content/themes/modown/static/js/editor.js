@@ -140,6 +140,29 @@
                     }
                });
 
+               ed.addButton( 'button_vip', {
+                    text : '',
+                    icon: 'wp-media-lock dashicons-before dashicons-shield modown-editor-icon',
+                    title : 'VIP可见',
+                    onclick : function() {
+                         ed.windowManager.open( {
+                              title: '隐藏VIP内容',
+                              body: [{
+                                   type: 'textbox',
+                                   name: 'vipCon',
+                                   label: false,
+                                   value: '',
+                                   multiline: true,
+                                   minWidth: 300,
+                                   minHeight: 100
+                              }],
+                              onsubmit: function( e ) {
+                                   ed.selection.setContent('[vip]'+e.data.vipCon+'[/vip]');
+                              }
+                         });
+                    }
+               });
+
                ed.addButton( 'button_reply', {
                     text : '',
                     icon: 'wp-media-comment dashicons-before dashicons-admin-comments modown-editor-icon',

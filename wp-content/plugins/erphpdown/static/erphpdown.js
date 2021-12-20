@@ -264,109 +264,123 @@ jQuery(function($){
         clearInterval(erphpWppayTimer);
         var post_id = $(this).data("post");
         if(post_id){
-            popup.showToast({
-                type: "it",
-                text: "处理中...",
-                time: 1e5
-            });
-            $.post(_ERPHP.ajaxurl, {
-                "action": "epd_wppay",
-                "post_id": post_id
-            }, function(result) {
-            	if( result.status == 202 ){
-                    $.post(_ERPHP.ajaxurl, {
-                        "action": "epd_wppay_pay",
-                        "post_id": post_id,
-                        "order_num": result.num
-                    }, function(data) {
-                        if(data.status == "1"){
-                            clearInterval(erphpWppayOrder);
-                            popup.hideModal('customModal');
-                            popup.showToast({
-                                type: "text",
-                                text: "支付成功！"
-                            });
-                            location.reload();
-                        }
-                    });
-                }else if( result.status == 200 ){
-                    popup.hideToast();
+        	if(_ERPHPDOWN.wppay == 'link'){
+    			var href = _ERPHPDOWN.uri+"/buy.php?postid="+post_id;
+		        layer.open({
+		            type: 2,
+		            area: ['350px', '445px'],
+		            title: '您的购买详单',
+		            resize:false,
+		            scrollbar: false,
+		            shadeClose: true,
+		            content: href
+		        });
+    		}else{
+	            popup.showToast({
+	                type: "it",
+	                text: "处理中...",
+	                time: 1e5
+	            });
+	            $.post(_ERPHP.ajaxurl, {
+	                "action": "epd_wppay",
+	                "post_id": post_id
+	            }, function(result) {
+	            	if( result.status == 202 ){
+	                    $.post(_ERPHP.ajaxurl, {
+	                        "action": "epd_wppay_pay",
+	                        "post_id": post_id,
+	                        "order_num": result.num
+	                    }, function(data) {
+	                        if(data.status == "1"){
+	                            clearInterval(erphpWppayOrder);
+	                            popup.hideModal('customModal');
+	                            popup.showToast({
+	                                type: "text",
+	                                text: "支付成功！"
+	                            });
+	                            location.reload();
+	                        }
+	                    });
+	                }else if( result.status == 200 ){
+	                    popup.hideToast();
 
-                    popup.showCustomModal({
-                        template: "erphpWppayQrcode",
-                        layerClose: 0,
-                        data: {
-                        	price: result.price,
-                        	price2: result.price2,
-                        	code: result.code,
-                        	code2: result.code2,
-                        	gift: result.gift,
-                        	gift2: result.gift2,
-                        	aliurl: result.aliurl,
-                        	wxurl: result.wxurl
-                        }
-                    });
+	                    popup.showCustomModal({
+	                        template: "erphpWppayQrcode",
+	                        layerClose: 0,
+	                        data: {
+	                        	price: result.price,
+	                        	price2: result.price2,
+	                        	code: result.code,
+	                        	code2: result.code2,
+	                        	gift: result.gift,
+	                        	gift2: result.gift2,
+	                        	aliurl: result.aliurl,
+	                        	wxurl: result.wxurl
+	                        }
+	                    });
 
-                    var m = 5;
-                    if(result.minute) m = result.minute;
+	                    var m = 5;
+	                    if(result.minute) m = result.minute;
 
-                    erphpWppayOrder = setInterval(function() {
-                        $.post(_ERPHP.ajaxurl, {
-                            "action": "epd_wppay_pay",
-                            "post_id": post_id,
-                            "order_num": result.num
-                        }, function(data) {
-                            if(data.status == "1"){
-                                clearInterval(erphpWppayOrder);
-                                popup.hideModal('customModal');
-                                popup.showToast({
-                                    type: "text",
-                                    text: "支付成功！"
-                                });
-                                location.reload();
-                            }
-                        });
-                    }, 5000);
+	                    erphpWppayOrder = setInterval(function() {
+	                        $.post(_ERPHP.ajaxurl, {
+	                            "action": "epd_wppay_pay",
+	                            "post_id": post_id,
+	                            "order_num": result.num
+	                        }, function(data) {
+	                            if(data.status == "1"){
+	                                clearInterval(erphpWppayOrder);
+	                                popup.hideModal('customModal');
+	                                popup.showToast({
+	                                    type: "text",
+	                                    text: "支付成功！"
+	                                });
+	                                location.reload();
+	                            }
+	                        });
+	                    }, 5000);
 
-                    var s = 0;  
-                    wppayCountdown();
-                    erphpWppayTimer = setInterval(function(){ wppayCountdown(); },1000);
-                    function wppayCountdown(){
-                        $(".wtime").html("支付倒计时：<span>0"+m+"分"+s+"秒</span>");
-                        if( m == 0 && s == 0 ){
-                            clearInterval(erphpWppayOrder);
-                            clearInterval(erphpWppayTimer);
-                            popup.hideModal('customModal');
-                            m = 4;
-                            s = 59;
-                        }else if( m >= 0 ){
-                            if( s > 0 ){
-                                s--;
-                            }else if( s == 0 ){
-                                m--;
-                                s = 59;
-                            }
-                        }
-                    }
+	                    var s = 0;  
+	                    wppayCountdown();
+	                    erphpWppayTimer = setInterval(function(){ wppayCountdown(); },1000);
+	                    function wppayCountdown(){
+	                        $(".wtime").html("支付倒计时：<span>0"+m+"分"+s+"秒</span>");
+	                        if( m == 0 && s == 0 ){
+	                            clearInterval(erphpWppayOrder);
+	                            clearInterval(erphpWppayTimer);
+	                            popup.hideModal('customModal');
+	                            m = 4;
+	                            s = 59;
+	                        }else if( m >= 0 ){
+	                            if( s > 0 ){
+	                                s--;
+	                            }else if( s == 0 ){
+	                                m--;
+	                                s = 59;
+	                            }
+	                        }
+	                    }
 
-                }else if( result.status == 201 ){
-                    popup.showToast({
-                        type: "text",
-                        text: result.msg
-                    });
-                }else{
-                    popup.showToast({
-                        type: "text",
-                        text: "获取支付信息失败！"
-                    });
-                }
-            }, 'json'); 
+	                }else if( result.status == 201 ){
+	                    popup.showToast({
+	                        type: "text",
+	                        text: result.msg
+	                    });
+	                }else{
+	                    popup.showToast({
+	                        type: "text",
+	                        text: "获取支付信息失败！"
+	                    });
+	                }
+	            }, 'json'); 
+	        }
         }else{
             popup.showToast({
                 type: "text",
                 text: "获取支付信息失败！"
             });
         }
+
         return false;
     });
 
@@ -428,8 +442,8 @@ jQuery(function($){
         var href = $(this).attr("href");
         layer.open({
             type: 2,
-            area: ['350px', '420px'],
-            title: '购买',
+            area: ['350px', '445px'],
+            title: '您的购买详单',
             resize:false,
             scrollbar: false,
             shadeClose: true,
@@ -444,7 +458,7 @@ jQuery(function($){
         layer.open({
             type: 2,
             area: ['350px', '445px'],
-            title: '下载',
+            title: '您的下载详情',
             resize:false,
             scrollbar: false,
             shadeClose: true,
@@ -510,6 +524,75 @@ jQuery(function($){
         return false;
     });
 
+    $("body").on("click", ".erphpdown-checkpan", function(){
+    	var post_id = $(this).data("id"),
+    	    post_buy = $(this).data("buy"),
+    	    post_index = $(this).data("index"),
+    	    that = $(this);
+    	if(post_id){
+    		popup.showToast({
+                type: "it",
+                text: "检测中...",
+                time: 1e5
+            });
+	    	$.post(_ERPHP.ajaxurl, {
+	            "action": "epd_check_pan",
+	            "post_id": post_id,
+	            "post_index": post_index
+	        }, function(data) {
+	            if(data.status == "500" || data.status == "200"){
+	                popup.showToast({
+	                    type: "text",
+	                    text: data.msg
+	                });
+	                if(data.status == "200"){
+		            	that.removeClass("erphpdown-checkpan").addClass("erphpdown-iframe erphpdown-buy").attr("href",post_buy).text("立即购买");
+		            }
+	            }else{
+	            	popup.showToast({
+	                    type: "text",
+	                    text: "检测失败，请稍后重试！"
+	                });
+	            }
+	        });
+	    }
+	    return false;
+    });
+
+    $("body").on("click", ".erphpdown-checkpan2", function(){
+    	var post_id = $(this).data("id"),
+    	    post_index = $(this).data("index"),
+    	    that = $(this);
+    	if(post_id){
+    		popup.showToast({
+                type: "it",
+                text: "检测中...",
+                time: 1e5
+            });
+	    	$.post(_ERPHP.ajaxurl, {
+	            "action": "epd_check_pan",
+	            "post_id": post_id,
+	            "post_index": post_index
+	        }, function(data) {
+	            if(data.status == "500" || data.status == "200"){
+	                popup.showToast({
+	                    type: "text",
+	                    text: data.msg
+	                });
+	                if(data.status == "200"){
+		            	that.removeClass("erphpdown-checkpan2").addClass("erphp-wppay-loader").text("立即购买");
+		            }
+	            }else{
+	            	popup.showToast({
+	                    type: "text",
+	                    text: "检测失败，请稍后重试！"
+	                });
+	            }
+	        });
+	    }
+	    return false;
+    });
+
     if($(".erphpdown-see-pay").length > 1){
     	$(".erphpdown-see-pay .erphpdown-buy, .erphpdown-see-pay .erphp-see-must").after('<span class="erphpdown-see-tips">（购买一个，查看所有）</span>');
     }
@@ -519,6 +602,22 @@ jQuery(function($){
     clipboard.on("success", function(e) {
         layer.msg("已复制",{time:500});
     });
-
 });
+
+function erphpdownOrderSuccess(){
+	layer.open({
+		title: '提示',
+		area: ['300px', '180px'],
+		btn: ['已支付', '再想想'],
+		content: '订单已支付？',
+		yes: function(index, layero){
+		  	layer.close(index);
+		  	location.reload();
+		}
+		,btn2: function(index, layero){
+			layer.close(index);
+		}
+	});
+}
+
 /* Powered by QQ:82708210 */

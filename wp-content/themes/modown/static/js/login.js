@@ -242,95 +242,54 @@ jQuery(function($){
 			}
 		);								   
 	});
-	/* Theme by mobantu.com */
+
 	$('.captcha-clk').bind('click',function(){
-
 		var captcha = $(this);
-
 		if(captcha.hasClass("disabled")){
-
 			logtips('您操作太快了，等等吧')
-
 		}else{
-
 			captcha.addClass("disabled");
-
 			captcha.html("发送中...");
-
 			$.post(
-
 				_MBT.uri+'/action/captcha.php?'+Math.random(),
-
 				{
-
 					action: "mobantu_captcha",
-
 					email:$("#regemail").val()
-
 				},
-
 				function (data) {
-
 					if($.trim(data) == "1"){
-
-						logtips('已发送验证码至邮箱，可能会出现在垃圾箱里哦~')
-
+						logtips('已发送验证码至邮箱，可能会出现在垃圾箱里哦~');
 						var countdown=60; 
-
-						settime()
-
+						settime();
 						function settime() { 
-
 							if (countdown == 0) { 
-
 								captcha.removeClass("disabled");   
-
 								captcha.html("重新发送验证码");
-
 								countdown = 60; 
-
 								return;
-
 							} else { 
-
 								captcha.addClass("disabled");
-
 								captcha.html("重新发送(" + countdown + ")"); 
-
 								countdown--; 
-
 							} 
-
-							setTimeout(function() { settime() },1000) 
-
+							setTimeout(function() { settime(); },1000) ;
 						}
-
-						
-
 					}else if($.trim(data) == "2"){
-
 						logtips('邮箱已存在')
-
 						captcha.html("发送验证码至邮箱");
-
 						captcha.removeClass("disabled"); 
-
+					}else if($.trim(data) == "3"){
+						logtips('请使用正确的邮箱')
+						captcha.html("发送验证码至邮箱");
+						captcha.removeClass("disabled"); 
 					}else{
-
 						logtips('验证码发送失败，请稍后重试')
-
 						captcha.html("发送验证码至邮箱");
-
 						captcha.removeClass("disabled"); 
-
 					}
-
 				}
-
-				);
-
+			);
 		}
-
 	});
 
 	$('.captcha-clk2').bind('click',function(){
@@ -372,7 +331,7 @@ jQuery(function($){
 								captcha.html("重新获取(" + countdown + ")"); 
 								countdown--; 
 							} 
-							setTimeout(function() { settime() },1000) 
+							setTimeout(function() { settime(); },1000) ;
 						}
 						
 					}else{
@@ -391,25 +350,28 @@ jQuery(function($){
 	
 });
 
-var _loginTipstimer
+var _loginTipstimer;
 function logtips(str){
-	if( !str ) return false
-	_loginTipstimer && clearTimeout(_loginTipstimer)
+	if( !str ) return false;
+	_loginTipstimer && clearTimeout(_loginTipstimer);
 	jQuery('.sign-tips').html(str).slideDown();
 	_loginTipstimer = setTimeout(function(){
 		jQuery('.sign-tips').slideUp();
-	}, 5000)
+	}, 5000);
 }
 
 function is_check_name(str) {    
-	return /^[\w]{3,16}$/.test(str) 
+	return /^[\w]{3,16}$/.test(str);
 }
+
 function is_check_mail(str) {
-	return /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(str.toLowerCase())
+	return /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(str.toLowerCase());
 }
+
 function is_check_url(str) {
-    return /^((http|https)\:\/\/)([a-z0-9-]{1,}.)?[a-z0-9-]{2,}.([a-z0-9-]{1,}.)?[a-z0-9]{2,}$/.test(str)
+    return /^((http|https)\:\/\/)([a-z0-9-]{1,}.)?[a-z0-9-]{2,}.([a-z0-9-]{1,}.)?[a-z0-9]{2,}$/.test(str);
 }
+
 function is_check_mobile(str){
     return /^[1][3,4,5,7,8,9][0-9]{9}$/.test(str);
 }
