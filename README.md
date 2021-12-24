@@ -1,2 +1,2 @@
 # blog
-博客静态文件
+https://blog.clkl.top/
