@@ -1,2 +1,2 @@
 # blog
-blog.clkl.top
+博客静态文件
